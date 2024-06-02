@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microphone FFT Visualization</title>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Get user permission for microphone access
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaStreamSource(stream);
+
+        // Create an AnalyserNode for FFT analysis
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048; // Adjust FFT size as needed
+
+        source.connect(analyser);
+
+        // Get frequency data from the analyser
+        const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+        function drawBars() {
+          analyser.getByteFrequencyData(frequencyData);
+
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Calculate bar width and spacing
+          const barWidth = canvas.width / frequencyData.length;
+          const barSpacing = 1;
+
+          for (let i = 0; i < frequencyData.length; i++) {
+            // Scale the frequency data to a suitable height
+            const barHeight = frequencyData[i] * 2;
+
+            // Draw the bar
+            ctx.fillStyle = 'rgb(' + (i * 2 % 255) + ', 0, 0)'; // Change color for each bar
+            ctx.fillRect(i * (barWidth + barSpacing), canvas.height - barHeight, barWidth, barHeight);
+          }
+
+          requestAnimationFrame(drawBars);
+        }
+
+        drawBars();
+      })
+      .catch(err => {
+        console.error('Error getting microphone access:', err);
+      });
+  </script>
+</body>
+</html>
