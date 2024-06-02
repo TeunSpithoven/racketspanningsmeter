@@ -6,7 +6,7 @@
   <title>Microphone FFT Visualization</title>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas" style="width: 100vw; height:100vh;"></canvas>
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -34,14 +34,14 @@
 
           // Calculate bar width and spacing
           const barWidth = canvas.width / frequencyData.length;
-          const barSpacing = 1;
+          const barSpacing = barWidth;
 
           for (let i = 0; i < frequencyData.length; i++) {
             // Scale the frequency data to a suitable height
-            const barHeight = frequencyData[i] * 2;
+            const barHeight = frequencyData[i] * 1;
 
             // Draw the bar
-            ctx.fillStyle = 'rgb(' + (i * 2 % 255) + ', 0, 0)'; // Change color for each bar
+            // ctx.fillStyle = 'rgb(' + (i * 2 % 255) + ', 0, 0)'; // Change color for each bar
             ctx.fillRect(i * (barWidth + barSpacing), canvas.height - barHeight, barWidth, barHeight);
           }
 
