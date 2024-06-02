@@ -1,4 +1,4 @@
-var webaudio_tooling_obj = (function () {
+// var webaudio_tooling_obj = (function () {
   var audioContext = new AudioContext();
 
   console.log("audio is starting up ...");
@@ -44,13 +44,13 @@ var webaudio_tooling_obj = (function () {
     if (label === "time") {
       for (; index < num_row_to_display && index < size_buffer; index += 1) {
         var curr_value_time = given_typed_array[index] / 128 - 1.0;
-
         console.log(curr_value_time);
       }
       // hier logica voor het displayen in een mooi dingetje
     } else if (label === "frequency") {
       for (; index < num_row_to_display && index < size_buffer; index += 1) {
         console.log(given_typed_array[index]);
+        // hier naar een canvas printen
       }
     } else {
       throw new Error("ERROR - must pass time or frequency");
@@ -119,9 +119,9 @@ var webaudio_tooling_obj = (function () {
 
       // draw the spectrogram
       if (microphone_stream.playbackState == microphone_stream.PLAYING_STATE) {
-        show_some_data(array_freq_domain, 5, "frequency");
-        show_some_data(array_time_domain, 5, "time"); // store this to record to aggregate buffer/file
+        show_some_data(array_freq_domain, 1, "frequency");
+        // show_some_data(array_time_domain, 5, "time"); // store this to record to aggregate buffer/file
       }
     };
   }
-})(); //  webaudio_tooling_obj = function()
+// })(); //webaudio_tooling_obj = function();
