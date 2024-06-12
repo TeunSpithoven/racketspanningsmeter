@@ -6,15 +6,23 @@
     <title>Microphone FFT Visualization</title>
   </head>
   <body style="margin: 0px">
-    <input
-      id="drempelRange"
-      type="range"
-      min="0"
-      max="255"
-      value="170"
-      style="position: absolute; z-index: 2"
-      onchange="handleDrempelChange(this.value)"
-    />
+    <div style="position: absolute; z-index: 2; color: white">
+      <div style="display: flex">
+        <input
+          id="drempelRange"
+          type="range"
+          min="0"
+          max="255"
+          value="170"
+          onchange="handleDrempelChange(this.value)"
+        />
+        <div id="drempelWaarde"></div>
+      </div>
+      <div style="font-size: xx-large; font-family: 'Lucida Sans'">
+        Racket frequentie index (niet de echte frequentie):
+        <span id="racketFrequentieLabel">onbekend</span>
+      </div>
+    </div>
     <canvas
       id="canvas"
       style="width: 100%; height: 100%; position: absolute"
@@ -26,9 +34,11 @@
       const WIDTH = canvas.width;
       const HEIGHT = canvas.height;
       let LUIDHEID_DREMPEL = 170;
+      document.getElementById("drempelWaarde").innerHTML = LUIDHEID_DREMPEL;
 
       function handleDrempelChange(value) {
         LUIDHEID_DREMPEL = value;
+        document.getElementById("drempelWaarde").innerHTML = LUIDHEID_DREMPEL;
       }
 
       // Get user permission for microphone access
@@ -44,7 +54,7 @@
           analyser.fftSize = 2048; // Adjust FFT size as needed
           // analyser.fftSize = 128; // Adjust FFT size as needed
           // analyser.fftSize = 256; // Adjust FFT size as needed
-          analyser.smoothingTimeConstant = 0.9; // Geen smoothing, we willen het rouwe spul
+          analyser.smoothingTimeConstant = 0; // Geen smoothing, we willen het rouwe spul
 
           source.connect(analyser);
 
@@ -135,6 +145,9 @@
                         if (neemtLineairAf) {
                           // zo ja sla m om om te displayen
                           racketFrequency = freq.index;
+                          document.getElementById(
+                            "racketFrequentieLabel"
+                          ).innerHTML = racketFrequency;
                         } else {
                           // zo nee gooi m weg
                           potentialRacketFrequencies.splice(
@@ -162,10 +175,10 @@
 
               ctx.fillStyle = "rgb(" + (barHeight + 100) + ",50,50)";
               if (i === loudestFrequency.index) {
-                ctx.fillStyle = "rgb(200, 50, 50)";
-                ctx.font = "20px Arial";
+                // ctx.fillStyle = "rgb(200, 50, 50)";
+                // ctx.font = "20px Arial";
                 // racket frequentie index
-                ctx.fillText(racketFrequency, 10, 20);
+                // ctx.fillText(racketFrequency, 10, 20);
                 ctx.fillStyle = "rgb(50, " + (barHeight + 100) + ",50)";
               }
               ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2);
