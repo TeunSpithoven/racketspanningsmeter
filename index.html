@@ -1,13 +1,67 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-    <title>capture microphone then show time & frequency domain output</title>
-    <script src="index.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Microphone FFT Visualization</title>
   </head>
-  <body>
-    <p>Volume</p>
-    <input id="volume" type="range" min="0" max="1" step="0.01" value="0.5" />
+  <body style="margin: 0px;">
+    <canvas id="canvas" style="width: 100%; height: 100%; position:absolute;"></canvas>
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Get user permission for microphone access
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then((stream) => {
+          const audioCtx = new AudioContext();
+          const source = audioCtx.createMediaStreamSource(stream);
+
+          // Create an AnalyserNode for FFT analysis
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256; // Adjust FFT size as needed
+
+          source.connect(analyser);
+
+          // Get frequency data from the analyser
+          const bufferLength = analyser.frequencyBinCount;
+          console.log(bufferLength);
+          const frequencyData = new Uint8Array(bufferLength);
+
+          const WIDTH = canvas.width;
+          const HEIGHT = canvas.height;
+
+          const drawBars = () => {
+            analyser.getByteFrequencyData(frequencyData);
+
+            ctx.fillStyle = "rgb(0, 0, 0)";
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            const barWidth = (WIDTH / bufferLength) * 2.5;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+              const barHeight = frequencyData[i];
+
+              ctx.fillStyle = "rgb(" + (barHeight + 100) + ",50,50)";
+              ctx.fillRect(
+                x,
+                HEIGHT - barHeight / 2,
+                barWidth,
+                barHeight / 2
+              );
+
+              x += barWidth + 1;
+            }
+            requestAnimationFrame(drawBars);
+          };
+
+          drawBars();
+        })
+        .catch((err) => {
+          console.error("Error getting microphone access:", err);
+        });
+    </script>
   </body>
 </html>
