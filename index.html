@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Microphone FFT Visualization</title>
   </head>
-  <body style="margin: 0px;">
-    <canvas id="canvas" style="width: 100%; height: 100%; position:absolute;"></canvas>
+  <body style="margin: 0px">
+    <canvas
+      id="canvas"
+      style="width: 100%; height: 100%; position: absolute"
+    ></canvas>
     <script>
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
@@ -22,17 +25,37 @@
           // De analyser node output de audio data
           const analyser = audioCtx.createAnalyser();
           analyser.fftSize = 2048; // Adjust FFT size as needed
-          analyser.smoothingTimeConstant = 0;
+          // analyser.fftSize = 128; // Adjust FFT size as needed
+          // analyser.fftSize = 256; // Adjust FFT size as needed
+          analyser.smoothingTimeConstant = 0.9; // Geen smoothing, we willen het rouwe spul
 
           source.connect(analyser);
 
           // array maken voor audio data
           const bufferLength = analyser.frequencyBinCount;
-          console.log(bufferLength);
+          // console.log(bufferLength);
           const frequencyData = new Uint8Array(bufferLength);
 
           const WIDTH = canvas.width;
           const HEIGHT = canvas.height;
+
+          // spul voor het zoeken naar de tennis racket frequentie
+          let loudestFrequency = { index: -1, value: 0 };
+
+          class PotFreq {
+            index;
+            value;
+            values = [];
+            constructor(index, value) {
+              this.index = index;
+              this.value = value;
+            }
+          }
+          let potentialRacketFrequencies = [];
+
+          let racketFrequency = -1;
+
+          // setInterval(() => {console.log("test interval")}, 1000);
 
           const drawBars = () => {
             // Vat audio data van de analyser
@@ -44,22 +67,127 @@
             const barWidth = (WIDTH / bufferLength) * 2.5;
             let x = 0;
 
+            // if (frequencyData[frequencyData.length / 2] > 100) {
+            //   console.log(frequencyData);
+            // }
+
+            // loop over de audio data en display die in de canvas
             for (let i = 0; i < bufferLength; i++) {
-              const barHeight = frequencyData[i];
+              const currentFrequency = frequencyData[i];
+
+              // logica voor racket geluid isolatie ------------------------------------------------------------
+              // als een frequentie twee keer achter elkaar de luidste is slaan we m op
+
+              // console.log(loudestFrequency.index === i);
+              if (loudestFrequency.index === i) {
+                // zit frequentie met index i al in de lijst?
+                const freqInList = potentialRacketFrequencies.find(
+                  (x) => x.index === i
+                );
+                if (freqInList) {
+                  // ja, voeg nieuwe value toe aan array
+                  const index = potentialRacketFrequencies.indexOf(freqInList);
+                  potentialRacketFrequencies[index].values.push(
+                    currentFrequency
+                  );
+                } else {
+                  // nee, maak m aan
+                  const newPotFreq = new PotFreq(i, currentFrequency);
+                  newPotFreq.values.push(currentFrequency);
+                  potentialRacketFrequencies.push(newPotFreq);
+                  // console.log("push new pot freq: " + i);
+                }
+              }
+
+              // if (frequencyData[frequencyData.length / 2] > 50) {
+              //   console.log(potentialRacketFrequencies.length);
+              // }
+
+              // neemt hij linear af? dan is het misschien een racket
+              // zo niet, dan verwijderen die hap
+              for (
+                let freqIndex = 0;
+                freqIndex < potentialRacketFrequencies.length;
+                freqIndex++
+              ) {
+                const freq = potentialRacketFrequencies[freqIndex];
+
+                if (freq.values.length > 1) {
+                  // if (freqIndex === 1) {
+                  //   console.log(freq.values[freq.values.length -1] )
+                  // }
+
+                  // als deze toellie niet eens afneemt moet ie weg
+                  if (
+                    freq.values[freq.values.length - 1] >
+                    freq.values[freq.values.length - 2]
+                  ) {
+                    // console.log("frequentie verwijderen die niet eens afneemt")
+                    potentialRacketFrequencies.splice(freqIndex, 1);
+                    // console.log(potentialRacketFrequencies.length);
+                  }
+
+                  let vorigeAfname = -1;
+                  if (freq.value > 180) {
+                    for (let i = 1; i < freq.values.length; i++) {
+                      const prevFreq = freq.values[i - 1];
+                      const currFreq = freq.values[i];
+                      // afname bijhouden
+                      let afname = prevFreq - currFreq;
+                      if (freq.index === 3) {
+                        // console.log(afname);
+                      }
+                      if (vorigeAfname === -1) {
+                        vorigeAfname = afname;
+                      } else {
+                        // kijk of de frequentie linear afneemt
+                        const neemtLineairAf = afname === vorigeAfname;
+                        if (neemtLineairAf) {
+                          // zo ja console log de waarde
+                          // console.log("NEEMT LINEAIR AF: " + freq.index);
+                          racketFrequency = freq.index;
+                        } else {
+                          // zo nee gooi m weg
+                          // console.log("remove pot freq: " + freq.index);
+                          potentialRacketFrequencies.splice(
+                            potentialRacketFrequencies.indexOf(freq),
+                            1
+                          );
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              // update luidste frequentie
+              if (currentFrequency > loudestFrequency.value) {
+                loudestFrequency.index = i;
+                loudestFrequency.value = currentFrequency;
+              } else if (loudestFrequency.index === i) {
+                loudestFrequency.value = currentFrequency;
+              }
+
+              // ------------------------------------------------------------------------------------------------
+
+              const barHeight = currentFrequency;
 
               ctx.fillStyle = "rgb(" + (barHeight + 100) + ",50,50)";
-              ctx.fillRect(
-                x,
-                HEIGHT - barHeight / 2,
-                barWidth,
-                barHeight / 2
-              );
+              if (i === loudestFrequency.index) {
+                ctx.fillStyle = "rgb(200, 50, 50)";
+                ctx.font = "20px Arial";
+                ctx.fillText(racketFrequency,10,20);
+                ctx.fillStyle = "rgb(50, " + (barHeight + 100) + ",50)";
+              }
+              ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2);
 
               x += barWidth + 1;
             }
+            // setInterval(requestAnimationFrame(drawBars), 1000);
             requestAnimationFrame(drawBars);
           };
 
+          // setInterval(drawBars(), 1000);
           drawBars();
         })
         .catch((err) => {
