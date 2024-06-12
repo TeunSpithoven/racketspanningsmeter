@@ -19,12 +19,14 @@
           const source = audioCtx.createMediaStreamSource(stream);
 
           // Create an AnalyserNode for FFT analysis
+          // De analyser node output de audio data
           const analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 256; // Adjust FFT size as needed
+          analyser.fftSize = 2048; // Adjust FFT size as needed
+          analyser.smoothingTimeConstant = 0;
 
           source.connect(analyser);
 
-          // Get frequency data from the analyser
+          // array maken voor audio data
           const bufferLength = analyser.frequencyBinCount;
           console.log(bufferLength);
           const frequencyData = new Uint8Array(bufferLength);
@@ -33,6 +35,7 @@
           const HEIGHT = canvas.height;
 
           const drawBars = () => {
+            // Vat audio data van de analyser
             analyser.getByteFrequencyData(frequencyData);
 
             ctx.fillStyle = "rgb(0, 0, 0)";
