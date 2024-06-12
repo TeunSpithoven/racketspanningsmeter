@@ -19,7 +19,7 @@
         <div id="drempelWaarde"></div>
       </div>
       <div style="font-size: xx-large; font-family: 'Lucida Sans'">
-        Racket frequentie index (niet de echte frequentie):
+        Racket frequentie:
         <span id="racketFrequentieLabel">onbekend</span>
       </div>
     </div>
@@ -148,7 +148,7 @@
                             racketFrequency = freq.index;
                             document.getElementById(
                               "racketFrequentieLabel"
-                            ).innerHTML = racketFrequency;
+                            ).innerHTML = racketFrequency * 44100 / 2048;
                           } else {
                             // zo nee gooi m weg
                             potentialRacketFrequencies.splice(
