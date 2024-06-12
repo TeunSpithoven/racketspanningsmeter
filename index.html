@@ -6,6 +6,15 @@
     <title>Microphone FFT Visualization</title>
   </head>
   <body style="margin: 0px">
+    <input
+      id="drempelRange"
+      type="range"
+      min="0"
+      max="255"
+      value="170"
+      style="position: absolute; z-index: 2"
+      onchange="handleDrempelChange(this.value)"
+    />
     <canvas
       id="canvas"
       style="width: 100%; height: 100%; position: absolute"
@@ -13,6 +22,14 @@
     <script>
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
+
+      const WIDTH = canvas.width;
+      const HEIGHT = canvas.height;
+      let LUIDHEID_DREMPEL = 170;
+
+      function handleDrempelChange(value) {
+        LUIDHEID_DREMPEL = value;
+      }
 
       // Get user permission for microphone access
       navigator.mediaDevices
@@ -34,10 +51,6 @@
           // array maken voor audio data
           const bufferLength = analyser.frequencyBinCount;
           const frequencyData = new Uint8Array(bufferLength);
-
-          const WIDTH = canvas.width;
-          const HEIGHT = canvas.height;
-          const LUIDHEID_DREMPEL = 170;
 
           // spul voor het zoeken naar de tennis racket frequentie
           class PotFreq {
@@ -159,7 +172,12 @@
 
               // luidheid drempel
               ctx.fillStyle = "rgb(50, 50, 200)";
-              ctx.fillRect(0, canvas.height - LUIDHEID_DREMPEL / 2, canvas.width, 2);
+              ctx.fillRect(
+                0,
+                canvas.height - LUIDHEID_DREMPEL / 2,
+                canvas.width,
+                2
+              );
 
               x += barWidth + 1;
             }
