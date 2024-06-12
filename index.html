@@ -114,46 +114,48 @@
 
               // neemt hij linear af? dan is het misschien een racket
               // zo niet, dan verwijderen die hap
-              for (
-                let freqIndex = 0;
-                freqIndex < potentialRacketFrequencies.length;
-                freqIndex++
-              ) {
-                const freq = potentialRacketFrequencies[freqIndex];
+              if (currentFrequency > LUIDHEID_DREMPEL) {
+                for (
+                  let freqIndex = 0;
+                  freqIndex < potentialRacketFrequencies.length;
+                  freqIndex++
+                ) {
+                  const freq = potentialRacketFrequencies[freqIndex];
 
-                if (freq.values.length > 1) {
-                  // als deze toellie niet eens afneemt moet ie weg
-                  if (
-                    freq.values[freq.values.length - 1] >
-                    freq.values[freq.values.length - 2]
-                  ) {
-                    potentialRacketFrequencies.splice(freqIndex, 1);
-                  }
+                  if (freq.values.length > 1) {
+                    // als deze toellie niet eens afneemt moet ie weg
+                    if (
+                      freq.values[freq.values.length - 1] >
+                      freq.values[freq.values.length - 2]
+                    ) {
+                      potentialRacketFrequencies.splice(freqIndex, 1);
+                    }
 
-                  let vorigeAfname = -1;
-                  if (freq.value > LUIDHEID_DREMPEL) {
-                    for (let i = 1; i < freq.values.length; i++) {
-                      const prevFreq = freq.values[i - 1];
-                      const currFreq = freq.values[i];
-                      // afname bijhouden
-                      let afname = prevFreq - currFreq;
-                      if (vorigeAfname === -1) {
-                        vorigeAfname = afname;
-                      } else {
-                        // kijk of de frequentie linear afneemt
-                        const neemtLineairAf = afname === vorigeAfname;
-                        if (neemtLineairAf) {
-                          // zo ja sla m om om te displayen
-                          racketFrequency = freq.index;
-                          document.getElementById(
-                            "racketFrequentieLabel"
-                          ).innerHTML = racketFrequency;
+                    let vorigeAfname = -1;
+                    if (freq.value > LUIDHEID_DREMPEL) {
+                      for (let i = 1; i < freq.values.length; i++) {
+                        const prevFreq = freq.values[i - 1];
+                        const currFreq = freq.values[i];
+                        // afname bijhouden
+                        let afname = prevFreq - currFreq;
+                        if (vorigeAfname === -1) {
+                          vorigeAfname = afname;
                         } else {
-                          // zo nee gooi m weg
-                          potentialRacketFrequencies.splice(
-                            potentialRacketFrequencies.indexOf(freq),
-                            1
-                          );
+                          // kijk of de frequentie linear afneemt
+                          const neemtLineairAf = afname === vorigeAfname;
+                          if (neemtLineairAf) {
+                            // zo ja sla m om om te displayen
+                            racketFrequency = freq.index;
+                            document.getElementById(
+                              "racketFrequentieLabel"
+                            ).innerHTML = racketFrequency;
+                          } else {
+                            // zo nee gooi m weg
+                            potentialRacketFrequencies.splice(
+                              potentialRacketFrequencies.indexOf(freq),
+                              1
+                            );
+                          }
                         }
                       }
                     }
